@@ -3,6 +3,7 @@ from collections.abc import Generator
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 import app.models  # noqa: F401
@@ -41,7 +42,48 @@ def prepare_test_database() -> Generator[None, None, None]:
     Base.metadata.drop_all(bind=test_engine)
     test_engine.dispose()
 
+@pytest.fixture(scope="session")
+def postgres_test_engine() -> Engine:
+    """Expose the PostgreSQL engine to integration tests."""
 
+    return test_engine
+
+
+def clear_application_tables(engine: Engine) -> None:
+    """Delete committed application data in foreign-key-safe order."""
+
+    with engine.begin() as connection:
+        for table in reversed(Base.metadata.sorted_tables):
+            connection.execute(table.delete())
+
+
+@pytest.fixture
+def committed_database_session(
+    postgres_test_engine: Engine,
+) -> Generator[Session, None, None]:
+    """
+    Provide a normal committed session for concurrency tests.
+
+    Unlike database_session, this fixture does not wrap the test in
+    one outer transaction because concurrent connections must see
+    committed setup records.
+    """
+
+    clear_application_tables(postgres_test_engine)
+
+    session = Session(
+        bind=postgres_test_engine,
+        expire_on_commit=False,
+    )
+
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()
+        clear_application_tables(postgres_test_engine)
+
+        
 @pytest.fixture
 def database_session() -> Generator[Session, None, None]:
     """Provide an isolated database transaction for each test."""
