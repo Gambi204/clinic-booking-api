@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: PostgreSQL tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+
+        env:
+          POSTGRES_USER: clinic_app
+          POSTGRES_PASSWORD: ClinicCI2026
+          POSTGRES_DB: clinic_booking_test_db
+
+        ports:
+          - 5432:5432
+
+        options: >-
+          --health-cmd "pg_isready -U clinic_app -d clinic_booking_test_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      APP_NAME: Clinic Booking API
+      APP_ENV: test
+
+      DATABASE_URL: postgresql+psycopg://clinic_app:ClinicCI2026@localhost:5432/clinic_booking_test_db
+      TEST_DATABASE_URL: postgresql+psycopg://clinic_app:ClinicCI2026@localhost:5432/clinic_booking_test_db
+
+      CLINIC_TIMEZONE: Africa/Nairobi
+      SLOT_DURATION_MINUTES: 30
+      MIN_BOOKING_NOTICE_MINUTES: 60
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Verify database migrations
+        run: |
+          alembic upgrade head
+          alembic current
+
+      - name: Run tests with coverage
+        run: |
+          python -m pytest --cov=app --cov-report=term-missing
