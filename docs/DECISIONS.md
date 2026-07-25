@@ -23,6 +23,11 @@
 | D-019 | Run CI against a PostgreSQL service container | Ensures pull requests verify PostgreSQL-specific migrations and constraints | CI takes longer than tests using an in-memory database | Yes |
 | D-020 | Use the same Python version locally and in CI | Reduces version-specific differences between development and automated tests | Upgrading Python requires updating the pinned version intentionally | Yes |
 | D-021 | Verify Alembic migrations before running tests in CI | Detects broken or incomplete migrations separately from ORM table creation | Adds an additional CI step | Yes |
+| D-022 | Generate slots relative to each working-period start | Supports schedules beginning at times such as 08:15 rather than assuming only :00 and :30 boundaries | Different working periods can produce different slot alignments | Yes |
+| D-023 | Require timezone-aware appointment timestamps | Prevents ambiguous comparisons and avoids interpreting client-local times silently | API clients must include an offset such as +03:00 | Yes |
+| D-024 | Normalize appointment times to Africa/Nairobi | Provides one consistent clinic-time basis for schedules, booking rules, and responses | Multi-timezone clinics would require configurable clinic locations | Yes |
+| D-025 | Allow appointments exactly at the minimum-notice boundary | “Within one hour” is interpreted as less than 60 minutes, so exactly 60 minutes is valid | A stricter clinic policy would require changing the comparison | Yes |
+| D-026 | Keep scheduling rules independent of FastAPI | Allows booking and rescheduling to reuse and test the same logic without HTTP dependencies | Endpoints must translate domain errors into HTTP responses | Yes |
 
 ## Independent Decisions
 

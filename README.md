@@ -6,7 +6,19 @@ This project is being developed as part of the Savannah Informatics Backend Deve
 
 ## Current Status
 
-The project foundation, PostgreSQL database configuration, SQLAlchemy models, Alembic migrations, seed data, and initial automated tests have been completed.
+Completed:
+
+- FastAPI application foundation.
+- PostgreSQL and SQLAlchemy configuration.
+- Alembic migrations.
+- Doctor, working-hours, patient, and appointment models.
+- PostgreSQL double-booking constraint.
+- Idempotent seed data.
+- PostgreSQL-backed automated tests.
+- Pull-request CI using GitHub Actions.
+- Timezone-aware slot generation and appointment-time validation.
+
+The appointment API endpoints are under development.
 
 ## Technology Stack
 

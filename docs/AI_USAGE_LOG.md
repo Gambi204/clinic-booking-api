@@ -10,6 +10,7 @@ This document records how AI was used during the assessment.
 | 2026-07-25 | Data modelling | Designing the Doctor, Working Hours, Patient, and Appointment tables | Use typed SQLAlchemy models, fixed appointment duration, soft cancellation, and a PostgreSQL partial unique index | Accepted after migration and database inspection | Verified through Alembic autogeneration, direct PostgreSQL inspection, and migration downgrade/upgrade |
 | 2026-07-25 | Seed data and test foundation | Designing repeatable seed data and isolated PostgreSQL test fixtures | Use an idempotent seed script, a separate test database, transaction rollback fixtures, and direct constraint tests | Accepted after execution | Verified by running the seed twice, checking record counts, running pytest, and inspecting test cleanup |
 | 2026-07-25 | Continuous integration | Creating a GitHub Actions workflow for PostgreSQL-backed tests | Start a PostgreSQL 18 service, apply Alembic migrations, and run pytest on every pull request to main | Accepted after local review and GitHub execution | Verified by opening a real pull request and checking the GitHub Actions result |
+| 2026-07-25 | Scheduling domain | Designing timezone handling, slot generation, minimum notice, and reusable validation | Generate slots from working-period starts, normalize times to Africa/Nairobi, and use framework-independent validation errors | Accepted after edge-case testing | Verified through 14 tests covering alignment, breaks, notice boundaries, past dates, timezone conversion, and booked slots |
 
 ## Notes
 
