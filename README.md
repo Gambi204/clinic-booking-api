@@ -240,3 +240,62 @@ The main environment variables are:
 * `MIN_BOOKING_NOTICE_MINUTES`
 
 The `.env` file contains local secrets and must not be committed to Git.
+
+## Deployment
+
+The API is configured for deployment on Render using the
+repository's `render.yaml` Blueprint.
+
+The Blueprint creates:
+
+- A Python web service.
+- A PostgreSQL 18 database.
+- Private database connectivity.
+- A database-aware HTTP health check.
+- Automatic deployment after the `main` branch passes CI.
+
+### Deployment Commands
+
+Build:
+
+```bash
+python -m pip install --upgrade pip &&
+python -m pip install -r requirements.txt
+```
+
+Start:
+
+```bash
+alembic upgrade head &&
+python -m app.seed &&
+python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+The seed command is idempotent, so repeated deployments do not
+duplicate the five doctors, their working hours, or the demonstration
+patients.
+
+### Production Environment
+
+The deployment uses:
+
+- `APP_ENV=production`
+- `APP_VERSION=1.0.0`
+- `CLINIC_TIMEZONE=Africa/Nairobi`
+- `SLOT_DURATION_MINUTES=30`
+- `MIN_BOOKING_NOTICE_MINUTES=60`
+- A Render-managed `DATABASE_URL`
+
+`TEST_DATABASE_URL` is used only by the local and CI test suites and
+is not configured in production.
+
+### Free-Tier Notice
+
+The assessment deployment uses Render's free service types.
+
+The free web service can spin down after inactivity, so the first
+request after a quiet period may take longer than normal.
+
+The free PostgreSQL database expires 30 days after creation. This
+deployment is intended for assessment and demonstration rather than
+long-term production use.

@@ -1,0 +1,57 @@
+services:
+  - type: web
+    name: clinic-booking-api-emmanuel-riungu
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: main
+
+    buildCommand: >-
+      python -m pip install --upgrade pip &&
+      python -m pip install -r requirements.txt
+
+    startCommand: >-
+      alembic upgrade head &&
+      python -m app.seed &&
+      python -m uvicorn app.main:app
+      --host 0.0.0.0
+      --port $PORT
+
+    healthCheckPath: /health
+    autoDeployTrigger: checksPass
+
+    envVars:
+      - key: APP_NAME
+        value: "Clinic Booking API"
+
+      - key: APP_VERSION
+        value: "1.0.0"
+
+      - key: APP_ENV
+        value: "production"
+
+      - key: DATABASE_URL
+        fromDatabase:
+          name: clinic-booking-postgres
+          property: connectionString
+
+      - key: CLINIC_TIMEZONE
+        value: "Africa/Nairobi"
+
+      - key: SLOT_DURATION_MINUTES
+        value: "30"
+
+      - key: MIN_BOOKING_NOTICE_MINUTES
+        value: "60"
+
+      - key: PYTHON_VERSION
+        value: "3.14.3"
+
+databases:
+  - name: clinic-booking-postgres
+    databaseName: clinic_booking_db
+    user: clinic_app
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "18"
+    ipAllowList: []

@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -22,6 +23,36 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+    @field_validator(
+        "database_url",
+        "test_database_url",
+        mode="before",
+    )
+    @classmethod
+    def normalize_postgresql_driver(
+        cls,
+        value: object,
+    ) -> object:
+        """Use Psycopg 3 for generic PostgreSQL connection URLs."""
+
+        if not isinstance(value, str):
+            return value
+
+        if value.startswith("postgresql://"):
+            return value.replace(
+                "postgresql://",
+                "postgresql+psycopg://",
+                1,
+            )
+
+        if value.startswith("postgres://"):
+            return value.replace(
+                "postgres://",
+                "postgresql+psycopg://",
+                1,
+            )
+
+        return value
 
 
 @lru_cache
