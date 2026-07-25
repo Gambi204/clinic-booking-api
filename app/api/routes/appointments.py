@@ -12,6 +12,8 @@ from app.schemas import (
     AppointmentCancellationResponse,
     AppointmentCancelRequest,
     AppointmentCreate,
+    AppointmentRescheduleRequest,
+    AppointmentRescheduleResponse,
     AppointmentResponse,
     ErrorResponse,
 )
@@ -22,6 +24,7 @@ from app.services import (
     cancel_appointment,
     create_appointment,
     normalize_to_clinic_timezone,
+    reschedule_appointment,
 )
 
 
@@ -185,5 +188,94 @@ def cancel_existing_appointment(
         status=appointment.status,
         cancellation_reason=appointment.cancellation_reason,
         cancelled_at=normalized_cancelled_at,
+        updated_at=normalized_updated_at,
+    )
+
+@router.patch(
+    "/appointments/{appointment_id}/reschedule",
+    response_model=AppointmentRescheduleResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reschedule an appointment",
+    description=(
+        "Move a scheduled appointment to another valid and "
+        "available slot."
+    ),
+    responses={
+        400: {
+            "model": ErrorResponse,
+            "description": (
+                "The new time violates an appointment scheduling rule."
+            ),
+        },
+        404: {
+            "model": ErrorResponse,
+            "description": "The appointment or doctor does not exist.",
+        },
+        409: {
+            "model": ErrorResponse,
+            "description": (
+                "The appointment cannot be moved to the requested slot."
+            ),
+        },
+    },
+)
+def reschedule_existing_appointment(
+    appointment_id: Annotated[
+        int,
+        Path(
+            gt=0,
+            description="Identifier of the appointment to reschedule.",
+        ),
+    ],
+    payload: AppointmentRescheduleRequest,
+    database_session: Annotated[Session, Depends(get_db)],
+    current_time: Annotated[datetime, Depends(get_current_time)],
+) -> AppointmentRescheduleResponse:
+    """Move an appointment atomically to another valid slot."""
+
+    try:
+        appointment, previous_start = reschedule_appointment(
+            database_session,
+            appointment_id=appointment_id,
+            requested_start=payload.new_start_at,
+            now=current_time,
+        )
+    except ResourceNotFoundError as error:
+        raise APIError(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=error.code,
+            message=error.message,
+        ) from error
+    except AppointmentConflictError as error:
+        raise APIError(
+            status_code=status.HTTP_409_CONFLICT,
+            code=error.code,
+            message=error.message,
+        ) from error
+    except AppointmentValidationError as error:
+        raise APIError(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=error.code,
+            message=error.message,
+        ) from error
+
+    normalized_start = normalize_to_clinic_timezone(
+        appointment.start_at,
+    )
+
+    normalized_updated_at = normalize_to_clinic_timezone(
+        appointment.updated_at,
+        field_name="updated_at",
+    )
+
+    return AppointmentRescheduleResponse(
+        id=appointment.id,
+        doctor_id=appointment.doctor_id,
+        patient_id=appointment.patient_id,
+        previous_start_at=previous_start,
+        start_at=normalized_start,
+        end_at=normalized_start
+        + timedelta(minutes=settings.slot_duration_minutes),
+        status=appointment.status,
         updated_at=normalized_updated_at,
     )

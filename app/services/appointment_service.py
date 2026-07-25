@@ -178,3 +178,118 @@ def cancel_appointment(
     database_session.refresh(appointment)
 
     return appointment
+
+def reschedule_appointment(
+    database_session: Session,
+    *,
+    appointment_id: int,
+    requested_start: datetime,
+    now: datetime,
+) -> tuple[Appointment, datetime]:
+    """Move a scheduled appointment to another valid slot."""
+
+    appointment = database_session.scalar(
+        select(Appointment)
+        .where(Appointment.id == appointment_id)
+        .with_for_update()
+    )
+
+    if appointment is None:
+        raise ResourceNotFoundError(
+            code="APPOINTMENT_NOT_FOUND",
+            message=f"Appointment {appointment_id} was not found.",
+        )
+
+    if appointment.status == AppointmentStatus.CANCELLED.value:
+        raise AppointmentConflictError(
+            code="CANCELLED_APPOINTMENT_CANNOT_BE_RESCHEDULED",
+            message=(
+                f"Appointment {appointment_id} is cancelled and "
+                "cannot be rescheduled."
+            ),
+        )
+
+    doctor = database_session.scalar(
+        select(Doctor)
+        .options(selectinload(Doctor.working_hours))
+        .where(Doctor.id == appointment.doctor_id)
+    )
+
+    if doctor is None:
+        raise ResourceNotFoundError(
+            code="DOCTOR_NOT_FOUND",
+            message=f"Doctor {appointment.doctor_id} was not found.",
+        )
+
+    if not doctor.is_active:
+        raise AppointmentConflictError(
+            code="DOCTOR_INACTIVE",
+            message=(
+                f"Doctor {doctor.id} is not currently accepting "
+                "appointments."
+            ),
+        )
+
+    normalized_new_start = validate_appointment_start(
+        requested_start,
+        doctor.working_hours,
+        now=now,
+    )
+
+    previous_start = normalize_to_clinic_timezone(
+        appointment.start_at,
+        field_name="previous_start_at",
+    )
+
+    if normalized_new_start == previous_start:
+        raise AppointmentConflictError(
+            code="APPOINTMENT_TIME_UNCHANGED",
+            message=(
+                "The requested appointment time is the same as "
+                "the current appointment time."
+            ),
+        )
+
+    conflicting_appointment_id = database_session.scalar(
+        select(Appointment.id).where(
+            Appointment.id != appointment.id,
+            Appointment.doctor_id == appointment.doctor_id,
+            Appointment.start_at == normalized_new_start,
+            Appointment.status
+            == AppointmentStatus.SCHEDULED.value,
+        )
+    )
+
+    if conflicting_appointment_id is not None:
+        raise AppointmentConflictError(
+            code="SLOT_UNAVAILABLE",
+            message=(
+                "The requested appointment slot is no longer "
+                "available."
+            ),
+        )
+
+    appointment.start_at = normalized_new_start
+
+    try:
+        database_session.commit()
+    except IntegrityError as error:
+        database_session.rollback()
+
+        if (
+            get_integrity_constraint_name(error)
+            == SCHEDULED_DOCTOR_SLOT_INDEX
+        ):
+            raise AppointmentConflictError(
+                code="SLOT_UNAVAILABLE",
+                message=(
+                    "The requested appointment slot is no longer "
+                    "available."
+                ),
+            ) from error
+
+        raise
+
+    database_session.refresh(appointment)
+
+    return appointment, previous_start

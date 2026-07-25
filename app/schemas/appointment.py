@@ -78,7 +78,41 @@ class AppointmentCancelRequest(BaseModel):
 
         return normalized_reason
 
+class AppointmentRescheduleRequest(BaseModel):
+    """Information required to move an appointment to a new slot."""
 
+    new_start_at: datetime = Field(
+        description=(
+            "Timezone-aware new appointment start time in "
+            "ISO 8601 format."
+        ),
+        examples=["2026-07-27T10:00:00+03:00"],
+    )
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "new_start_at": "2026-07-27T10:00:00+03:00",
+            }
+        },
+    )
+
+
+class AppointmentRescheduleResponse(BaseModel):
+    """Appointment details returned after successful rescheduling."""
+
+    id: int
+    doctor_id: int
+    patient_id: int
+
+    previous_start_at: datetime
+    start_at: datetime
+    end_at: datetime
+
+    status: AppointmentStatus
+    updated_at: datetime
+    
 class AppointmentResponse(BaseModel):
     """Appointment details returned after successful creation."""
 
