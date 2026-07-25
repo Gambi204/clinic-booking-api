@@ -3,6 +3,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.api.errors import APIError, api_error_handler
+from app.api.router import api_router
 from app.core.config import settings
 from app.db.dependencies import get_db
 
@@ -10,10 +12,14 @@ from app.db.dependencies import get_db
 app = FastAPI(
     title=settings.app_name,
     description=(
-        "A REST API for managing doctor availability and patient appointments."
+        "A REST API for managing doctor availability and "
+        "patient appointments."
     ),
-    version="0.2.0",
+    version="0.3.0",
 )
+
+app.add_exception_handler(APIError, api_error_handler)
+app.include_router(api_router)
 
 
 @app.get("/", tags=["System"], summary="Display service information")

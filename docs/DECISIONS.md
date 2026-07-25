@@ -28,6 +28,11 @@
 | D-024 | Normalize appointment times to Africa/Nairobi | Provides one consistent clinic-time basis for schedules, booking rules, and responses | Multi-timezone clinics would require configurable clinic locations | Yes |
 | D-025 | Allow appointments exactly at the minimum-notice boundary | “Within one hour” is interpreted as less than 60 minutes, so exactly 60 minutes is valid | A stricter clinic policy would require changing the comparison | Yes |
 | D-026 | Keep scheduling rules independent of FastAPI | Allows booking and rescheduling to reuse and test the same logic without HTTP dependencies | Endpoints must translate domain errors into HTTP responses | Yes |
+| D-027 | Inject the current time through a FastAPI dependency | Makes time-sensitive API tests deterministic without changing production behaviour | Adds one application dependency to each time-sensitive endpoint | Yes |
+| D-028 | Use a custom structured API error format | Gives clients and support engineers stable error codes and readable messages | FastAPI's default request-validation errors remain in their standard 422 format | Yes |
+| D-029 | Perform both application conflict checks and database enforcement | Provides friendly errors while retaining concurrency-safe PostgreSQL protection | The application performs one additional conflict query before insertion | Yes |
+| D-030 | Return calculated appointment end time without storing it | Keeps the database model consistent with the fixed 30-minute duration | Variable-duration appointments would require a future schema change | Yes |
+| D-031 | Reject unknown appointment request properties | Detects client mistakes rather than silently ignoring unsupported input | Clients must remove any unrecognized fields | Yes |
 
 ## Independent Decisions
 

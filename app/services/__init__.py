@@ -1,4 +1,10 @@
-from app.services.exceptions import AppointmentValidationError
+from app.services.appointment_service import create_appointment
+from app.services.exceptions import (
+    AppointmentConflictError,
+    AppointmentValidationError,
+    DomainError,
+    ResourceNotFoundError,
+)
 from app.services.scheduling import (
     generate_slot_starts,
     get_available_slot_starts,
@@ -8,7 +14,11 @@ from app.services.scheduling import (
 )
 
 __all__ = [
+    "AppointmentConflictError",
     "AppointmentValidationError",
+    "DomainError",
+    "ResourceNotFoundError",
+    "create_appointment",
     "generate_slot_starts",
     "get_available_slot_starts",
     "get_clinic_timezone",

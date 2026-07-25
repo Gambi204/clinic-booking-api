@@ -17,6 +17,7 @@ Completed:
 - PostgreSQL-backed automated tests.
 - Pull-request CI using GitHub Actions.
 - Timezone-aware slot generation and appointment-time validation.
+- Appointment creation endpoint with structured error handling.
 
 The appointment API endpoints are under development.
 
@@ -49,6 +50,13 @@ A secondary ReDoc interface is available at:
 
 * `GET /`
 * `GET /health`
+* `POST /appointments`
+
+### Create an Appointment
+
+```http
+POST /appointments
+```
 
 Additional appointment-management endpoints are under development.
 
