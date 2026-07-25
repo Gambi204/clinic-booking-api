@@ -104,6 +104,19 @@ Possible handled errors include:
 
 - `PATIENT_NOT_FOUND`
 
+### Concurrency Protection
+
+The test suite includes a PostgreSQL-backed simultaneous-booking
+test. Two independent transactions attempt to reserve the same
+doctor and start time after both have observed the slot as available.
+
+The test verifies that:
+
+- Exactly one transaction succeeds.
+- The competing transaction receives `SLOT_UNAVAILABLE`.
+- Exactly one scheduled appointment exists in PostgreSQL.
+- The partial unique index remains the final double-booking safeguard.
+
 ## Seed Data
 
 The development database can be populated with five doctors, their working hours, and three sample patients by running:

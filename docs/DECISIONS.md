@@ -50,6 +50,10 @@
 | D-046 | Include doctor name and specialty in patient appointment responses | Allows clients to display useful appointment information without additional doctor requests | The response duplicates a small amount of doctor data | Yes |
 | D-047 | Order patient appointments by start time and ID | Produces deterministic chronological results | Same-time appointments are ordered by database identifier | Yes |
 | D-048 | Return an empty list when a patient has no upcoming appointments | The patient exists successfully but has no matching records | Clients must distinguish an empty list from a missing patient | Yes |
+| D-049 | Keep a separate committed-session fixture for concurrency tests | Independent database connections must see committed setup records, while ordinary tests benefit from fast rollback isolation | Concurrency tests require explicit cleanup of committed rows | Yes |
+| D-050 | Use one SQLAlchemy session per worker thread | Sessions are mutable transaction objects and must not be shared across concurrent threads | Concurrent tests open additional pooled database connections | Yes |
+| D-051 | Synchronize the competing transactions immediately before commit | Forces both bookings past the application conflict check and exercises PostgreSQL as the final concurrency safeguard | The test temporarily monkeypatches `Session.commit` inside one isolated test | Yes |
+| D-052 | Verify both the service result and final database row count | Confirms that clients receive a useful conflict and that only one scheduled record exists | The test performs an additional verification query | Yes |
 
 ## Independent Decisions
 
