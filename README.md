@@ -21,6 +21,7 @@ Completed:
 - Doctor availability endpoint with scheduled-slot filtering.
 - Appointment cancellation with row locking and immediate slot release.
 - Atomic appointment rescheduling with destination validation and rollback protection.
+- Bonus endpoint for upcoming patient appointments.
 
 ## Technology Stack
 
@@ -55,6 +56,7 @@ A secondary ReDoc interface is available at:
 * `GET /doctors/{doctor_id}/availability?date=YYYY-MM-DD`
 * `PATCH /appointments/{appointment_id}/cancel`
 * `PATCH /appointments/{appointment_id}/reschedule`
+* `GET /patients/{patient_id}/appointments`
 
 ### Create an Appointment
 
@@ -79,6 +81,28 @@ PATCH /appointments/{appointment_id}/cancel
 ```http
 PATCH /appointments/{appointment_id}/reschedule
 ```
+### Get Upcoming Patient Appointments
+
+```http
+GET /patients/{patient_id}/appointments
+```
+
+The endpoint returns upcoming scheduled appointments ordered from earliest to latest.
+
+Each result includes:
+
+- Appointment identifier.
+- Doctor identifier.
+- Doctor name and specialty.
+- Start time.
+- Calculated end time.
+- Appointment status.
+
+Past and cancelled appointments are excluded.
+
+Possible handled errors include:
+
+- `PATIENT_NOT_FOUND`
 
 ## Seed Data
 

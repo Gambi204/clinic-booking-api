@@ -46,6 +46,10 @@
 | D-042 | Reject rescheduling to the current appointment time | Prevents meaningless state changes and misleading success responses | Clients receive 409 instead of an idempotent success | Yes |
 | D-043 | Reuse the booking validation service for rescheduling | Ensures booking and rescheduling enforce identical schedule, notice, and timezone rules | Future operation-specific rules must be layered around the shared validator | Yes |
 | D-044 | Return the previous and new appointment times | Makes the outcome explicit for API clients and support investigations | The previous time is not yet stored as permanent audit history | Yes |
+| D-045 | Return only scheduled upcoming patient appointments | The endpoint is designed for actionable future bookings rather than appointment history | Cancelled and past appointments require a future history endpoint | Yes |
+| D-046 | Include doctor name and specialty in patient appointment responses | Allows clients to display useful appointment information without additional doctor requests | The response duplicates a small amount of doctor data | Yes |
+| D-047 | Order patient appointments by start time and ID | Produces deterministic chronological results | Same-time appointments are ordered by database identifier | Yes |
+| D-048 | Return an empty list when a patient has no upcoming appointments | The patient exists successfully but has no matching records | Clients must distinguish an empty list from a missing patient | Yes |
 
 ## Independent Decisions
 
