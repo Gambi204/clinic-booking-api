@@ -37,6 +37,10 @@
 | D-033 | Return an empty availability list on non-working days | The doctor exists but has no valid slots for that date | Clients must distinguish an empty schedule from a missing doctor | Yes |
 | D-034 | Query only scheduled appointments when calculating availability | Cancelled appointments must release their former slots | Future blocking statuses would need to be added explicitly | Yes |
 | D-035 | Calculate database day boundaries using Africa/Nairobi | Ensures appointments are matched to the clinic's local date | Multi-location clinics would require location-specific timezones | Yes |
+| D-036 | Require a cancellation reason | Creates an operational record explaining why a slot was released | Clients must provide a meaningful reason before cancellation succeeds | Yes |
+| D-037 | Lock an appointment row during cancellation | Prevents simultaneous requests from both acting on stale appointment state | Concurrent updates to the same appointment wait for the active transaction | Yes |
+| D-038 | Preserve cancelled appointments instead of deleting them | Maintains an audit trail while the partial unique index releases the slot | Cancelled records increase table size over time | Yes |
+| D-039 | Reject repeated cancellation with 409 Conflict | The request conflicts with the appointment's current state | Cancellation is not treated as silently idempotent | Yes |
 
 ## Independent Decisions
 

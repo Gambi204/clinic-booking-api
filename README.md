@@ -19,6 +19,7 @@ Completed:
 - Timezone-aware slot generation and appointment-time validation.
 - Appointment creation endpoint with structured error handling.
 - Doctor availability endpoint with scheduled-slot filtering.
+- Appointment cancellation with row locking and immediate slot release.
 
 The appointment API endpoints are under development.
 
@@ -52,13 +53,14 @@ A secondary ReDoc interface is available at:
 * `GET /`
 * `GET /health`
 * `POST /appointments`
+* `GET /doctors/{doctor_id}/availability?date=YYYY-MM-DD`
+* `PATCH /appointments/{appointment_id}/cancel`
 
 ### Create an Appointment
 
 ```http
 POST /appointments
 ```
-* `GET /doctors/{doctor_id}/availability?date=YYYY-MM-DD`
 
 ### Get Doctor Availability
 
@@ -66,6 +68,11 @@ POST /appointments
 GET /doctors/{doctor_id}/availability?date=2026-07-27
 ```
 
+### Cancel an Appointment
+
+```http
+PATCH /appointments/{appointment_id}/cancel
+```
 
 Additional appointment-management endpoints are under development.
 

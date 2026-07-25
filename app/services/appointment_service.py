@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import (
@@ -14,7 +14,10 @@ from app.services.exceptions import (
     AppointmentConflictError,
     ResourceNotFoundError,
 )
-from app.services.scheduling import validate_appointment_start
+from app.services.scheduling import (
+    normalize_to_clinic_timezone,
+    validate_appointment_start,
+)
 
 
 SCHEDULED_DOCTOR_SLOT_INDEX = (
@@ -121,6 +124,55 @@ def create_appointment(
                 ),
             ) from error
 
+        raise
+
+    database_session.refresh(appointment)
+
+    return appointment
+
+def cancel_appointment(
+    database_session: Session,
+    *,
+    appointment_id: int,
+    reason: str,
+    now: datetime,
+) -> Appointment:
+    """Cancel an appointment while preserving its history."""
+
+    appointment = database_session.scalar(
+        select(Appointment)
+        .where(Appointment.id == appointment_id)
+        .with_for_update()
+    )
+
+    if appointment is None:
+        raise ResourceNotFoundError(
+            code="APPOINTMENT_NOT_FOUND",
+            message=f"Appointment {appointment_id} was not found.",
+        )
+
+    if appointment.status == AppointmentStatus.CANCELLED.value:
+        raise AppointmentConflictError(
+            code="APPOINTMENT_ALREADY_CANCELLED",
+            message=(
+                f"Appointment {appointment_id} has already been "
+                "cancelled."
+            ),
+        )
+
+    cancellation_time = normalize_to_clinic_timezone(
+        now,
+        field_name="now",
+    )
+
+    appointment.status = AppointmentStatus.CANCELLED.value
+    appointment.cancellation_reason = reason
+    appointment.cancelled_at = cancellation_time
+
+    try:
+        database_session.commit()
+    except SQLAlchemyError:
+        database_session.rollback()
         raise
 
     database_session.refresh(appointment)
