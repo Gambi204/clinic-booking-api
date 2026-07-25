@@ -20,8 +20,7 @@ Completed:
 - Appointment creation endpoint with structured error handling.
 - Doctor availability endpoint with scheduled-slot filtering.
 - Appointment cancellation with row locking and immediate slot release.
-
-The appointment API endpoints are under development.
+- Atomic appointment rescheduling with destination validation and rollback protection.
 
 ## Technology Stack
 
@@ -55,6 +54,7 @@ A secondary ReDoc interface is available at:
 * `POST /appointments`
 * `GET /doctors/{doctor_id}/availability?date=YYYY-MM-DD`
 * `PATCH /appointments/{appointment_id}/cancel`
+* `PATCH /appointments/{appointment_id}/reschedule`
 
 ### Create an Appointment
 
@@ -74,7 +74,11 @@ GET /doctors/{doctor_id}/availability?date=2026-07-27
 PATCH /appointments/{appointment_id}/cancel
 ```
 
-Additional appointment-management endpoints are under development.
+### Reschedule an Appointment
+
+```http
+PATCH /appointments/{appointment_id}/reschedule
+```
 
 ## Seed Data
 

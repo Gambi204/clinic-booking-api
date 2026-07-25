@@ -41,6 +41,11 @@
 | D-037 | Lock an appointment row during cancellation | Prevents simultaneous requests from both acting on stale appointment state | Concurrent updates to the same appointment wait for the active transaction | Yes |
 | D-038 | Preserve cancelled appointments instead of deleting them | Maintains an audit trail while the partial unique index releases the slot | Cancelled records increase table size over time | Yes |
 | D-039 | Reject repeated cancellation with 409 Conflict | The request conflicts with the appointment's current state | Cancellation is not treated as silently idempotent | Yes |
+| D-040 | Lock the appointment row during rescheduling | Prevents cancellation or another reschedule from concurrently modifying the same appointment | Competing operations on the same appointment wait for the transaction to finish | Yes |
+| D-041 | Validate the destination before changing the appointment | Keeps the original slot unchanged when the proposed time is invalid | Validation performs database queries before the update | Yes |
+| D-042 | Reject rescheduling to the current appointment time | Prevents meaningless state changes and misleading success responses | Clients receive 409 instead of an idempotent success | Yes |
+| D-043 | Reuse the booking validation service for rescheduling | Ensures booking and rescheduling enforce identical schedule, notice, and timezone rules | Future operation-specific rules must be layered around the shared validator | Yes |
+| D-044 | Return the previous and new appointment times | Makes the outcome explicit for API clients and support investigations | The previous time is not yet stored as permanent audit history | Yes |
 
 ## Independent Decisions
 
