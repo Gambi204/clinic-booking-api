@@ -1,4 +1,6 @@
 from app.schemas.appointment import (
+    AppointmentCancellationResponse,
+    AppointmentCancelRequest,
     AppointmentCreate,
     AppointmentResponse,
 )
@@ -9,6 +11,8 @@ from app.schemas.availability import (
 from app.schemas.error import ErrorDetail, ErrorResponse
 
 __all__ = [
+    "AppointmentCancellationResponse",
+    "AppointmentCancelRequest",
     "AppointmentCreate",
     "AppointmentResponse",
     "AvailabilitySlot",

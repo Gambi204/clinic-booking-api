@@ -1,4 +1,7 @@
-from app.services.appointment_service import create_appointment
+from app.services.appointment_service import (
+    cancel_appointment,
+    create_appointment,
+)
 from app.services.availability_service import (
     get_doctor_availability,
 )
@@ -21,6 +24,7 @@ __all__ = [
     "AppointmentValidationError",
     "DomainError",
     "ResourceNotFoundError",
+    "cancel_appointment",
     "create_appointment",
     "generate_slot_starts",
     "get_available_slot_starts",
