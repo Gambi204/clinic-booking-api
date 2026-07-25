@@ -11,6 +11,10 @@ from app.schemas.availability import (
     DoctorAvailabilityResponse,
 )
 from app.schemas.error import ErrorDetail, ErrorResponse
+from app.schemas.patient import (
+    PatientAppointmentItem,
+    PatientAppointmentsResponse,
+)
 
 __all__ = [
     "AppointmentCancellationResponse",
@@ -23,4 +27,6 @@ __all__ = [
     "DoctorAvailabilityResponse",
     "ErrorDetail",
     "ErrorResponse",
+    "PatientAppointmentItem",
+    "PatientAppointmentsResponse",
 ]
