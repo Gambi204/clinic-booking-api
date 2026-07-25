@@ -19,6 +19,10 @@
 | D-015 | Roll back an outer database transaction after each test | Keeps tests isolated and repeatable | Test fixtures require careful transaction configuration | Yes |
 | D-016 | Seed five doctors and sample patients through an idempotent script | Makes the deployed API immediately testable without duplicate records on restart | Seeded names act as stable identifiers for setup purposes | Yes |
 | D-017 | Test database constraints directly | Proves that data integrity does not rely only on API validation | These tests are tied to PostgreSQL behaviour | Yes |
+| D-018 | Use HTTPX2 for FastAPI and Starlette test clients | Starlette has deprecated ordinary HTTPX support for TestClient | HTTPX2 is newer and less familiar than HTTPX | Yes |
+| D-019 | Run CI against a PostgreSQL service container | Ensures pull requests verify PostgreSQL-specific migrations and constraints | CI takes longer than tests using an in-memory database | Yes |
+| D-020 | Use the same Python version locally and in CI | Reduces version-specific differences between development and automated tests | Upgrading Python requires updating the pinned version intentionally | Yes |
+| D-021 | Verify Alembic migrations before running tests in CI | Detects broken or incomplete migrations separately from ORM table creation | Adds an additional CI step | Yes |
 
 ## Independent Decisions
 
