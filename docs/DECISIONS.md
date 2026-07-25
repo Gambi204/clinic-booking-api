@@ -15,6 +15,10 @@
 | D-011 | Use a PostgreSQL partial unique index for scheduled doctor slots | Prevents concurrent double-booking while allowing cancelled historical appointments | This index is PostgreSQL-specific | Yes |
 | D-012 | Represent working hours as multiple weekday periods | Supports lunch breaks and differing schedules without a separate break model | Overlapping periods are not currently prevented by a database exclusion constraint | Yes |
 | D-013 | Use string status values with a database check constraint | Simpler migrations than a PostgreSQL-native enum while retaining database validation | Status values occupy slightly more storage than a native enum | Yes |
+| D-014 | Use a separate PostgreSQL database for automated tests | Prevents tests from damaging local development data and exercises PostgreSQL-specific behaviour | Local setup requires creating one additional database | Yes |
+| D-015 | Roll back an outer database transaction after each test | Keeps tests isolated and repeatable | Test fixtures require careful transaction configuration | Yes |
+| D-016 | Seed five doctors and sample patients through an idempotent script | Makes the deployed API immediately testable without duplicate records on restart | Seeded names act as stable identifiers for setup purposes | Yes |
+| D-017 | Test database constraints directly | Proves that data integrity does not rely only on API validation | These tests are tied to PostgreSQL behaviour | Yes |
 
 ## Independent Decisions
 

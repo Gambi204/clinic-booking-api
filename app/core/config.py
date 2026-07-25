@@ -8,7 +8,9 @@ class Settings(BaseSettings):
 
     app_name: str = "Clinic Booking API"
     app_env: str = "development"
+
     database_url: str
+    test_database_url: str | None = None
 
     clinic_timezone: str = "Africa/Nairobi"
     slot_duration_minutes: int = 30
