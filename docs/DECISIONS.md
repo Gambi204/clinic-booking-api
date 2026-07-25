@@ -33,6 +33,10 @@
 | D-029 | Perform both application conflict checks and database enforcement | Provides friendly errors while retaining concurrency-safe PostgreSQL protection | The application performs one additional conflict query before insertion | Yes |
 | D-030 | Return calculated appointment end time without storing it | Keeps the database model consistent with the fixed 30-minute duration | Variable-duration appointments would require a future schema change | Yes |
 | D-031 | Reject unknown appointment request properties | Detects client mistakes rather than silently ignoring unsupported input | Clients must remove any unrecognized fields | Yes |
+| D-032 | Reject availability requests for past dates | Past appointment availability has no actionable booking value | Historical schedule reporting would require a separate endpoint | Yes |
+| D-033 | Return an empty availability list on non-working days | The doctor exists but has no valid slots for that date | Clients must distinguish an empty schedule from a missing doctor | Yes |
+| D-034 | Query only scheduled appointments when calculating availability | Cancelled appointments must release their former slots | Future blocking statuses would need to be added explicitly | Yes |
+| D-035 | Calculate database day boundaries using Africa/Nairobi | Ensures appointments are matched to the clinic's local date | Multi-location clinics would require location-specific timezones | Yes |
 
 ## Independent Decisions
 

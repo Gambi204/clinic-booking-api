@@ -18,6 +18,7 @@ Completed:
 - Pull-request CI using GitHub Actions.
 - Timezone-aware slot generation and appointment-time validation.
 - Appointment creation endpoint with structured error handling.
+- Doctor availability endpoint with scheduled-slot filtering.
 
 The appointment API endpoints are under development.
 
@@ -57,6 +58,14 @@ A secondary ReDoc interface is available at:
 ```http
 POST /appointments
 ```
+* `GET /doctors/{doctor_id}/availability?date=YYYY-MM-DD`
+
+### Get Doctor Availability
+
+```http
+GET /doctors/{doctor_id}/availability?date=2026-07-27
+```
+
 
 Additional appointment-management endpoints are under development.
 
