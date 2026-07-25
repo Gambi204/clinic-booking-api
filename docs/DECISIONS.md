@@ -59,6 +59,12 @@
 | D-055 | Emit JSON application logs | Produces machine-readable logs suitable for hosted log viewers and future aggregation | Human readers see one compact JSON object per line | Yes |
 | D-056 | Exclude request bodies and query values from access logs | Reduces the risk of exposing patient or booking information through operational logs | Some debugging details require reproduction rather than log inspection | Yes |
 | D-057 | Standardize request-validation errors | Gives malformed requests the same machine-readable error structure as domain errors | This replaces FastAPI's default `detail` response structure | Yes |
+| D-058 | Define Render infrastructure in `render.yaml` | Keeps the service, database, environment variables, health check, and deployment behaviour reviewable in version control | Render-specific configuration creates some platform coupling | Yes |
+| D-059 | Normalize generic PostgreSQL URLs to the Psycopg 3 SQLAlchemy scheme | Render provides a standard `postgresql://` connection string while the application uses Psycopg 3 explicitly | Configuration contains a small platform-compatibility transformation | Yes |
+| D-060 | Run migrations and the idempotent seed before starting the free web service | Free Render web services lack shell access and paid pre-deploy commands, so startup must prepare the database automatically | Startup takes slightly longer and this approach is intended for the single-instance assessment deployment | Yes |
+| D-061 | Deploy the web service and database in Frankfurt | Keeps both resources in one Render region and enables private-network database communication | The region cannot be changed after resource creation without recreating resources | Yes |
+| D-062 | Trigger automatic deployment only after CI checks pass | Prevents a failing `main` commit from being automatically released | Deployment waits for GitHub Actions to complete | Yes |
+| D-063 | Block public connections to the production database | The application only needs the internal Render connection string | Direct database inspection from a local machine is unavailable | Yes |
 
 ## Independent Decisions
 
