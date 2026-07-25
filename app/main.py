@@ -3,10 +3,16 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.api.errors import APIError, api_error_handler
+from app.api.errors import (
+    APIError,
+    api_error_handler,
+    request_validation_error_handler,
+)
 from app.api.router import api_router
 from app.core.config import settings
 from app.db.dependencies import get_db
+from fastapi.exceptions import RequestValidationError
+from app.middleware import add_request_context
 
 
 app = FastAPI(
@@ -15,10 +21,21 @@ app = FastAPI(
         "A REST API for managing doctor availability and "
         "patient appointments."
     ),
-    version="0.3.0",
+    version=settings.app_version,
 )
 
-app.add_exception_handler(APIError, api_error_handler)
+app.middleware("http")(add_request_context)
+
+app.add_exception_handler(
+    APIError,
+    api_error_handler,
+)
+
+app.add_exception_handler(
+    RequestValidationError,
+    request_validation_error_handler,
+)
+
 app.include_router(api_router)
 
 

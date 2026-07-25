@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     """Application configuration loaded from environment variables."""
 
     app_name: str = "Clinic Booking API"
+    app_version: str = "1.0.0"
     app_env: str = "development"
 
     database_url: str
