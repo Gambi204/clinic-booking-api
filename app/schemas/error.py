@@ -8,6 +8,7 @@ class ErrorDetail(BaseModel):
 
     code: str
     message: str
+    request_id: str | None = None
     details: dict[str, Any] | None = None
 
 

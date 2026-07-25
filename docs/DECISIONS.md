@@ -54,6 +54,11 @@
 | D-050 | Use one SQLAlchemy session per worker thread | Sessions are mutable transaction objects and must not be shared across concurrent threads | Concurrent tests open additional pooled database connections | Yes |
 | D-051 | Synchronize the competing transactions immediately before commit | Forces both bookings past the application conflict check and exercises PostgreSQL as the final concurrency safeguard | The test temporarily monkeypatches `Session.commit` inside one isolated test | Yes |
 | D-052 | Verify both the service result and final database row count | Confirms that clients receive a useful conflict and that only one scheduled record exists | The test performs an additional verification query | Yes |
+| D-053 | Assign a request ID to every HTTP request | Allows API responses and server logs to be correlated during debugging | Clients may receive a generated identifier when they do not provide one | Yes |
+| D-054 | Preserve valid client-provided request IDs | Supports tracing across calling systems while limiting identifiers to 128 characters | The service trusts reasonable identifiers supplied through the header | Yes |
+| D-055 | Emit JSON application logs | Produces machine-readable logs suitable for hosted log viewers and future aggregation | Human readers see one compact JSON object per line | Yes |
+| D-056 | Exclude request bodies and query values from access logs | Reduces the risk of exposing patient or booking information through operational logs | Some debugging details require reproduction rather than log inspection | Yes |
+| D-057 | Standardize request-validation errors | Gives malformed requests the same machine-readable error structure as domain errors | This replaces FastAPI's default `detail` response structure | Yes |
 
 ## Independent Decisions
 

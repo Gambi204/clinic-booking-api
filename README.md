@@ -117,6 +117,42 @@ The test verifies that:
 - Exactly one scheduled appointment exists in PostgreSQL.
 - The partial unique index remains the final double-booking safeguard.
 
+## Observability
+
+Every API response includes an `X-Request-ID` header.
+
+Clients may supply an identifier:
+
+```http
+X-Request-ID: frontend-request-12345
+```
+
+When no valid identifier is supplied, the API generates a UUID.
+
+Handled API errors include the same identifier:
+
+```json
+{
+  "error": {
+    "code": "PATIENT_NOT_FOUND",
+    "message": "Patient 999 was not found.",
+    "request_id": "frontend-request-12345"
+  }
+}
+```
+
+Application request logs are emitted as JSON and include:
+
+- Request ID
+- HTTP method
+- Request path
+- Status code
+- Duration in milliseconds
+- Client address
+
+Request bodies, query values, patient details, emails, and phone
+numbers are not included in application request logs.
+
 ## Seed Data
 
 The development database can be populated with five doctors, their working hours, and three sample patients by running:
@@ -144,6 +180,10 @@ python -m pytest --cov=app --cov-report=term-missing
 ```
 
 The tests use PostgreSQL rather than SQLite so that PostgreSQL-specific constraints, partial indexes, and transaction behaviour are exercised accurately.
+
+- Request-ID generation and propagation.
+- Structured domain and request-validation errors.
+- JSON request-log formatting.
 
 ## Database Migrations
 
