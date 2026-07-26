@@ -1,8 +1,26 @@
 # Engineering Decision Log
 
-| ID | Decision | Reason | Trade-off | AI Assisted |
+This document records the main design and delivery decisions I made for the Savannah Informatics Backend Developer Take-Home Assessment. The trade-offs are included because the assessment values reasoning as well as working code.
+
+Unless a row states otherwise, the decision was implemented and verified through automated tests, CI, database inspection, or live deployment.
+
+## Decisions Made Without AI
+
+These are the two decisions I made before requesting AI guidance on them.
+
+| ID | Decision | Why I trusted my own judgment | Trade-off | Verification |
 |---|---|---|---|---|
-| D-001 | Use FastAPI | Recent practical familiarity and automatic OpenAPI documentation | Less built-in administration than Django | Yes |
+| I-001 | Use FastAPI rather than Django | I had used FastAPI recently and understood its dependency injection, validation, routing, and OpenAPI workflow well enough to build and explain the system confidently | FastAPI has less built-in administration and convention than Django, so I had to impose a clear modular structure myself | I completed all required and bonus endpoints, passed the PostgreSQL-backed tests, and deployed the API |
+| I-002 | Build the solution incrementally and merge only verified stages | Previous development experience had shown me that small changes are easier to understand, debug, review, and reverse than one large unverified change | It required more branches, commits, and pull requests | The repository history shows separate verified stages for the database, scheduling, endpoints, concurrency, observability, and deployment |
+
+> I later used AI to review the FastAPI implementation and to help implement individual stages. I did not count GitHub Actions as a decision made without AI because AI presented CI/CD options before I selected it.
+
+
+## Foundation, architecture, and delivery
+
+| ID | Decision | Reason | Trade-off | AI Involvement |
+|---|---|---|---|---|
+| D-001 | Use FastAPI | I had recent practical experience with FastAPI and could confidently build, debug, test, and explain the assessment with it | It provides less built-in administration and convention than Django, so I had to define the project structure deliberately | No - chosen before AI review |
 | D-002 | Use PostgreSQL | Strong transaction and constraint support | Requires database installation and configuration | Yes |
 | D-003 | Use synchronous SQLAlchemy | Easier to understand, test, and explain for this assessment | Does not demonstrate asynchronous database access | Yes |
 | D-004 | Use Render free tier | Meets the public deployment requirement at no cost | Service may sleep during inactivity | Yes |
@@ -19,17 +37,22 @@
 | D-015 | Roll back an outer database transaction after each test | Keeps tests isolated and repeatable | Test fixtures require careful transaction configuration | Yes |
 | D-016 | Seed five doctors and sample patients through an idempotent script | Makes the deployed API immediately testable without duplicate records on restart | Seeded names act as stable identifiers for setup purposes | Yes |
 | D-017 | Test database constraints directly | Proves that data integrity does not rely only on API validation | These tests are tied to PostgreSQL behaviour | Yes |
-| D-018 | Use HTTPX2 for FastAPI and Starlette test clients | Starlette has deprecated ordinary HTTPX support for TestClient | HTTPX2 is newer and less familiar than HTTPX | Yes |
-| D-019 | Run CI against a PostgreSQL service container | Ensures pull requests verify PostgreSQL-specific migrations and constraints | CI takes longer than tests using an in-memory database | Yes |
+| D-018 | Use HTTPX2 for FastAPI and Starlette test clients | The installed Starlette runtime emitted a deprecation warning for ordinary `httpx` and directed the project to `httpx2` | HTTPX2 is newer and less familiar than HTTPX | Yes |
+| D-019 | Use GitHub Actions for CI | It integrates directly with the GitHub repository and presents pull-request checks clearly | The workflow depends on GitHub-hosted runners and a PostgreSQL service-container pull | Yes - selected after AI presented CI options |
 | D-020 | Use the same Python version locally and in CI | Reduces version-specific differences between development and automated tests | Upgrading Python requires updating the pinned version intentionally | Yes |
 | D-021 | Verify Alembic migrations before running tests in CI | Detects broken or incomplete migrations separately from ORM table creation | Adds an additional CI step | Yes |
+
+## Scheduling, API behavior, and requirement interpretations
+
+| ID | Decision | Reason | Trade-off | AI Involvement |
+|---|---|---|---|---|
 | D-022 | Generate slots relative to each working-period start | Supports schedules beginning at times such as 08:15 rather than assuming only :00 and :30 boundaries | Different working periods can produce different slot alignments | Yes |
 | D-023 | Require timezone-aware appointment timestamps | Prevents ambiguous comparisons and avoids interpreting client-local times silently | API clients must include an offset such as +03:00 | Yes |
 | D-024 | Normalize appointment times to Africa/Nairobi | Provides one consistent clinic-time basis for schedules, booking rules, and responses | Multi-timezone clinics would require configurable clinic locations | Yes |
 | D-025 | Allow appointments exactly at the minimum-notice boundary | “Within one hour” is interpreted as less than 60 minutes, so exactly 60 minutes is valid | A stricter clinic policy would require changing the comparison | Yes |
 | D-026 | Keep scheduling rules independent of FastAPI | Allows booking and rescheduling to reuse and test the same logic without HTTP dependencies | Endpoints must translate domain errors into HTTP responses | Yes |
 | D-027 | Inject the current time through a FastAPI dependency | Makes time-sensitive API tests deterministic without changing production behaviour | Adds one application dependency to each time-sensitive endpoint | Yes |
-| D-028 | Use a custom structured API error format | Gives clients and support engineers stable error codes and readable messages | FastAPI's default request-validation errors remain in their standard 422 format | Yes |
+| D-028 | Use a custom structured API error format | Gives clients and support engineers stable error codes and readable messages | Requires custom exception handlers and clients must use the project-specific error envelope | Yes |
 | D-029 | Perform both application conflict checks and database enforcement | Provides friendly errors while retaining concurrency-safe PostgreSQL protection | The application performs one additional conflict query before insertion | Yes |
 | D-030 | Return calculated appointment end time without storing it | Keeps the database model consistent with the fixed 30-minute duration | Variable-duration appointments would require a future schema change | Yes |
 | D-031 | Reject unknown appointment request properties | Detects client mistakes rather than silently ignoring unsupported input | Clients must remove any unrecognized fields | Yes |
@@ -50,6 +73,11 @@
 | D-046 | Include doctor name and specialty in patient appointment responses | Allows clients to display useful appointment information without additional doctor requests | The response duplicates a small amount of doctor data | Yes |
 | D-047 | Order patient appointments by start time and ID | Produces deterministic chronological results | Same-time appointments are ordered by database identifier | Yes |
 | D-048 | Return an empty list when a patient has no upcoming appointments | The patient exists successfully but has no matching records | Clients must distinguish an empty list from a missing patient | Yes |
+
+## Testing, observability, and deployment
+
+| ID | Decision | Reason | Trade-off | AI Involvement |
+|---|---|---|---|---|
 | D-049 | Keep a separate committed-session fixture for concurrency tests | Independent database connections must see committed setup records, while ordinary tests benefit from fast rollback isolation | Concurrency tests require explicit cleanup of committed rows | Yes |
 | D-050 | Use one SQLAlchemy session per worker thread | Sessions are mutable transaction objects and must not be shared across concurrent threads | Concurrent tests open additional pooled database connections | Yes |
 | D-051 | Synchronize the competing transactions immediately before commit | Forces both bookings past the application conflict check and exercises PostgreSQL as the final concurrency safeguard | The test temporarily monkeypatches `Session.commit` inside one isolated test | Yes |
@@ -65,7 +93,14 @@
 | D-061 | Deploy the web service and database in Frankfurt | Keeps both resources in one Render region and enables private-network database communication | The region cannot be changed after resource creation without recreating resources | Yes |
 | D-062 | Trigger automatic deployment only after CI checks pass | Prevents a failing `main` commit from being automatically released | Deployment waits for GitHub Actions to complete | Yes |
 | D-063 | Block public connections to the production database | The application only needs the internal Render connection string | Direct database inspection from a local machine is unavailable | Yes |
+| D-064 | Keep detailed deployment verification in a separate document linked from the README | Keeps the README readable while preserving evidence that every public endpoint and the CI-gated deployment were verified | Reviewers must open one additional document for the full smoke-test record | Yes |
+| D-065 | Build incrementally in small branches and merge only after local tests and CI pass | I wanted each capability to be understandable, independently reviewable, and easy to debug before moving to the next stage | The process required more branches, commits, and pull requests than one large implementation | No - process chosen before AI-assisted stage implementation |
 
-## Independent Decisions
+## Summary of the Most Important Trade-offs
 
-Two meaningful implementation decisions will be made personally by Emmanuel without first requesting an AI recommendation. They will be recorded here honestly for the assessment reflection.
+- I favored correctness and explainability over minimizing setup, which is why the application and tests use PostgreSQL rather than SQLite.
+- I favored a clear synchronous transaction model over demonstrating asynchronous database access.
+- I favored preserving cancelled records over deleting them.
+- I accepted PostgreSQL-specific features to gain reliable concurrency protection.
+- I accepted additional pull requests and CI time in exchange for incremental verification.
+- I accepted Render free-tier limitations to meet the public deployment requirement at no cost.
