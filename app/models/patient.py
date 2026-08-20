@@ -45,3 +45,9 @@ class Patient(Base):
     appointments: Mapped[list["Appointment"]] = relationship(
         back_populates="patient",
     )
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
